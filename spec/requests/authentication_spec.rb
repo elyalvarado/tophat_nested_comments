@@ -32,6 +32,10 @@ RSpec.describe 'POST /api/sign_in', type: :request do
 
       expect(decoded_token.first['sub']).to be_present
     end
+
+    it 'returns the user' do
+      expect(response.body).to match_schema :user
+    end
   end
 
   context 'when params are incorrect' do

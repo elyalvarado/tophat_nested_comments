@@ -1,0 +1,7 @@
+require: rubocop-rails
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 120
