@@ -9,5 +9,9 @@ Rails.application.routes.draw do
       post 'sign_up', to: 'registrations#create', as: :user_registration
     end
   end
+
+  scope 'api' do
+    resources :comments, only: [ :index, :create ]
+  end
 end
 
