@@ -49,3 +49,5 @@ gem 'devise'
 gem 'devise-jwt'
 gem 'rack-cors'
 
+
+gem "active_model_serializers", "~> 0.10.10"

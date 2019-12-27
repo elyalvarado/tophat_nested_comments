@@ -21,13 +21,44 @@ RSpec.describe CommentsController, type: :request do
       expect(response).to be_successful
     end
 
-    it "returns all existing comments" do
-      comments = FactoryBot.create_list(:comment, 3)
+    it 'returns only top level comments' do
+      comment = FactoryBot.create(:comment, parent_id: nil)
+      FactoryBot.create_list(:comment, 2, parent_id: comment.id)
       get '/api/comments'
-      expect(response.body).to eq(comments.to_json)
+      root_comment_ids = JSON.parse(response.body).map { |c| c["id"] }
+      expect(root_comment_ids).to eq [ comment.id ]
     end
 
-    xit 'returns only top level comments with nested children'
+    def root_tree structure
+      structure.reduce({}) do |memo, comment|
+        memo[comment["id"]] = tree_for(comment)
+        memo
+      end
+    end
+
+    def tree_for comment
+      comment["children"]&.reduce({}) do |memo, child|
+        memo[child["id"]] = tree_for(child)
+        memo
+      end
+    end
+    it 'returns comments with children nested' do
+      top_level_comment = FactoryBot.create(:comment, parent_id: nil)
+      another_top_level_comment = FactoryBot.create(:comment, parent_id: nil)
+      mid_level_comment = FactoryBot.create(:comment, parent_id: top_level_comment.id)
+      bottom_level_comment = FactoryBot.create(:comment, parent_id: mid_level_comment.id)
+      get '/api/comments'
+      all_comments = JSON.parse(response.body)
+      expected_ids = {
+        top_level_comment.id =>
+          {
+            mid_level_comment.id =>
+              { bottom_level_comment.id => {} }
+          },
+        another_top_level_comment.id => {}
+      }
+      expect(root_tree(all_comments)).to eq expected_ids
+    end
   end
 
   describe "POST #create" do
